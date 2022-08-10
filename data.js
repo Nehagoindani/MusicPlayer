@@ -2,9 +2,9 @@ const musiclibrary = [
   {
     id: 1,
     url: 'https://www.bensound.com/bensound-music/bensound-happyrock.mp3',
-    title: 'Happy Rock',
-    artist: 'Benjamin Tissot',
-    album: "Bensound's rock",
+    title: 'Right Now ',
+    artist: 'Acon',
+    album: "Acon",
     genre: 'Rock',
     date: '2014-05-20T07:00:00+00:00', // RFC 3339
     artwork: require('./Images/i3.webp'), // Load artwork from the network
@@ -13,8 +13,8 @@ const musiclibrary = [
   {
     id: 2,
     url: 'https://www.bensound.com/bensound-music/bensound-anewbeginning.mp3',
-    title: 'Punky',
-    artist: 'Benjamin Tissot',
+    title: 'All I Want',
+    artist: 'Kodaline',
     album: "Bensound's rock",
     genre: 'Rock',
     date: '2014-05-20T07:00:00+00:00', // RFC 3339
@@ -23,9 +23,9 @@ const musiclibrary = [
   },
   {
     id: 3,
-    url: 'https://www.bensound.com/bensound-music/bensound-actionable.mp3',
-    title: 'Actionable',
-    artist: 'Benjamin Tissot',
+    url: require('./Music/Come-back.mp3'),
+    title: 'Come Back Home',
+    artist: 'Sofia Carson',
     album: "Bensound's rock",
     genre: 'Rock',
     date: '2014-05-20T07:00:00+00:00', // RFC 3339
@@ -34,9 +34,9 @@ const musiclibrary = [
   },
   {
     id: 4,
-    url: 'https://www.bensound.com/bensound-music/bensound-romantic.mp3',
-    title: 'Romantic',
-    artist: 'Benjamin Tissot',
+    url: require('./Music/hmdard.mp3'),
+    title: 'Humdard',
+    artist: 'Arijit Singh',
     album: "Bensound's Jazz",
     genre: 'Jazz',
     date: '2014-05-20T07:00:00+00:00', // RFC 3339
@@ -46,9 +46,9 @@ const musiclibrary = [
   {
     id: 5,
     url: 'https://www.bensound.com/bensound-music/bensound-allthat.mp3',
-    title: 'All That',
-    artist: 'Benjamin Tissot',
-    album: "Bensound's Jazz",
+    title: 'Night Changes',
+    artist: 'One Direction',
+    album: "One Direction",
     genre: 'Jazz',
     date: '2014-05-20T07:00:00+00:00', // RFC 3339
     artwork: require('./Images/i5.webp'),

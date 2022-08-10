@@ -11,6 +11,8 @@ import {
     Dimensions,
     Animated
 } from 'react-native';
+import TrackPlayer, { Capability, Event, State, useProgress, usePlaybackState, RepeatMode, useTrackPlayerEvents } from 'react-native-track-player';
+
 import Slider from '@react-native-community/slider';
 import musiclibrary from '../data';
 
@@ -18,85 +20,135 @@ import musiclibrary from '../data';
 import Icon from 'react-native-vector-icons/Ionicons'
 
 const { width, height } = Dimensions.get('window')
+const setUpPlayer = async () => {
+    try {
+        await TrackPlayer.setupPlayer();
+        await TrackPlayer.add(musiclibrary)
+
+    } catch (e) {
+        console.log(e)
+
+    }
+}
+const togglePayBack = async (playBackState) => {
+    const currentState = TrackPlayer.getCurrentTrack();
+    if (currentState != null) {
+        if (playBackState == State.Paused) {
+            await TrackPlayer.play()
+        }
+        else {
+            await TrackPlayer.pause()
+        }
+    }
+
+}
 
 
 export default function TrackListScreen() {
+    const playBackState = usePlaybackState()
+
     const scrollX = useRef(new Animated.Value(0)).current;
+    const songSlider = useRef(null)
     const [songIndex, setSongIndex] = useState(0)
+    const [songData, setsongData] = useState({})
+    const [currentSongtitle, setcurrentSongtitle] = useState({})
+    const progress = useProgress()
+
+    const onViewRef = React.useRef((viewableItems) => {
+        setsongData(viewableItems?.viewableItems[0]?.item)
+        setSongIndex(viewableItems)
+        // Use viewable items in state or as intended
+    })
+    const viewConfigRef = React.useRef({ viewAreaCoveragePercentThreshold: 50 })
 
     const rederSongs = ({ item, index }) => {
         return (
-            <Animated.View style={{width:width, justifyContent:'center', alignItems:'center'}}>
-                <View style={styles.imageWrapper}>
-                    <Image
-                        source={item.artwork}
-                        style={styles.musicImage}
+            (currentSongtitle == item?.id) ?
+                <Animated.View style={{ width: width, justifyContent: 'center', alignItems: 'center' }}>
+                    <View style={styles.imageWrapper}>
+                        <Image
+                            source={item?.artwork}
+                            style={styles.musicImage}
 
-                    />
-                </View>
-            </Animated.View>
-
+                        />
+                    </View>
+                </Animated.View>
+                : null
         )
     }
-
     useEffect(() => {
-        console.log(musiclibrary)
-       
-        scrollX.addListener(({Value})=>{
-            const index = Math.round(Value / width)
-            setSongIndex(index)
-            console.log(musiclibrary[songIndex].title)
-
-        })
+        setUpPlayer()
+        setTimeout(() => {
+            gettrack()
+        }, 1000);
     }, [])
+    const gettrack = async () => {
+        let trackIndex = await TrackPlayer.getCurrentTrack();
+        let trackObject = await TrackPlayer.getTrack(trackIndex);
+        setcurrentSongtitle(trackObject)
 
+    }
+    const skipToNext = async () => {
+        await TrackPlayer.skipToNext()
+        gettrack()
+
+    }
+    const skipToPrevious = async () => {
+        await TrackPlayer.skipToPrevious()
+        gettrack()
+
+    }
 
     return (
 
         <View style={styles.container}>
             <View style={styles.miniConatiner}>
+            <Animated.View style={{ width: width, justifyContent: 'center', alignItems: 'center' }}>
+                    <View style={styles.imageWrapper}>
+                        <Image
+                            source={currentSongtitle?.artwork}
+                            style={styles.musicImage}
 
-                <Animated.FlatList
+                        />
+                    </View>
+                </Animated.View>
+                {/* <Animated.FlatList
+                    ref={songSlider}
                     renderItem={rederSongs}
                     data={musiclibrary}
-                    keyExtractor={item => item.id}
+                    keyExtractor={item => item?.id}
                     horizontal
                     pagingEnabled
                     showsHorizontalScrollIndicator={false}
                     scrollEventThrottle={25}
-                    // it will trigger the scroll event
-                    onScroll={Animated.event([
-                        {
-                            nativeEvent:{
-                                contentOffset: {x: scrollX}
-                            }
-                        }
-                    ],
-                    {useNativeDriver: true}
-                    )}
+                    viewabilityConfig={viewConfigRef?.current}
+                    onViewableItemsChanged={onViewRef?.current}
 
-                />
+                /> */}
 
                 <View>
-                    <Text style={styles.songTitle}> {musiclibrary[songIndex].title}</Text>
-                    <Text style={styles.songArtist}> </Text>
+                    <Text style={styles.songTitle}> {currentSongtitle?.title} </Text>
+                    <Text style={styles.songArtist}> {currentSongtitle?.artist} </Text>
                 </View>
 
 
                 <View>
                     <Slider
                         style={{ width: 300, height: 45, marginTop: 25, flexDirection: 'row' }}
+                        value={progress.position}
                         minimumValue={0}
-                        maximumValue={1}
+                        maximumValue={progress.duration}
                         minimumTrackTintColor="#ffd369"
                         maximumTrackTintColor="#ffff"
-                        onSlidingComplete={() => { }}
+                        onSlidingComplete={async value => {
+                            await TrackPlayer.seekTo(value);
+                        }}
                     />
 
 
                     <View style={styles.duration}>
-                        <Text style={styles.durationText}>0.00</Text>
-                        <Text style={styles.durationText}>0.00</Text>
+                        <Text style={styles.durationText}>{progress.position} </Text>
+                        <Text style={styles.durationText}> {progress.duration} </Text>
 
                     </View>
 
@@ -105,13 +157,13 @@ export default function TrackListScreen() {
 
 
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '60%', marginTop: 15 }}>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={skipToPrevious}>
                         <Icon name='play-skip-back-outline' size={35} color='#ffd369' />
                     </TouchableOpacity>
-                    <TouchableOpacity>
-                        <Icon name='play-circle-sharp' size={70} color='#ffd369' />
+                    <TouchableOpacity onPress={() => togglePayBack(playBackState)} >
+                        <Icon name={playBackState == State.Playing ? 'pause-circle-sharp' : 'play-circle-sharp'} size={70} color='#ffd369' />
                     </TouchableOpacity>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={skipToNext}>
                         <Icon name='play-skip-forward-outline' size={35} color='#ffd369' />
                     </TouchableOpacity>
                 </View>
@@ -159,7 +211,7 @@ const styles = StyleSheet.create({
     imageWrapper: {
         width: 300,
         height: 340,
-        marginBottom: 15,
+        // marginBottom: 10,
 
     },
     musicImage: {
