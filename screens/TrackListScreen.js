@@ -11,10 +11,13 @@ import {
     Dimensions,
     Animated
 } from 'react-native';
-import TrackPlayer, { Capability, Event, State, useProgress, usePlaybackState, RepeatMode, useTrackPlayerEvents } from 'react-native-track-player';
+import TrackPlayer, { Event, State, useProgress, usePlaybackState, useTrackPlayerEvents, Capability } from 'react-native-track-player';
 
 import Slider from '@react-native-community/slider';
-import musiclibrary from '../data';
+import { PlaybackService } from './src/services';
+import { music } from './Track'
+import moment from 'moment';
+moment().format()
 
 
 import Icon from 'react-native-vector-icons/Ionicons'
@@ -23,13 +26,48 @@ const { width, height } = Dimensions.get('window')
 const setUpPlayer = async () => {
     try {
         await TrackPlayer.setupPlayer();
-        await TrackPlayer.add(musiclibrary)
+        await TrackPlayer.add(music)
+        await TrackPlayer.seekTo(12.5);
+        await TrackPlayer.updateOptions({
+            stopWithApp: true,
+            capabilities: [
+                Capability.Play,
+                Capability.Pause,
+                Capability.SkipToNext,
+                Capability.SkipToPrevious,
+                Capability.Stop,
+                // Capability.SeekTo
+
+            ],
+            compactCapabilities: [
+                Capability.Play,
+                Capability.Pause,
+                Capability.SkipToNext,
+                Capability.SkipToPrevious,
+                // Capability.SeekTo
+
+
+            ],
+            notificationCapabilities: [
+                // Capability.SeekTo,
+                Capability.Play,
+                Capability.Pause,
+                Capability.SkipToNext,
+                Capability.SkipToPrevious,
+                
+
+
+            ],
+        });
+        TrackPlayer.play();
 
     } catch (e) {
         console.log(e)
 
     }
+
 }
+
 const togglePayBack = async (playBackState) => {
     const currentState = TrackPlayer.getCurrentTrack();
     if (currentState != null) {
@@ -53,6 +91,7 @@ export default function TrackListScreen() {
     const [songData, setsongData] = useState({})
     const [currentSongtitle, setcurrentSongtitle] = useState({})
     const progress = useProgress()
+
 
     const onViewRef = React.useRef((viewableItems) => {
         setsongData(viewableItems?.viewableItems[0]?.item)
@@ -81,13 +120,21 @@ export default function TrackListScreen() {
         setTimeout(() => {
             gettrack()
         }, 1000);
+
     }, [])
     const gettrack = async () => {
         let trackIndex = await TrackPlayer.getCurrentTrack();
         let trackObject = await TrackPlayer.getTrack(trackIndex);
         setcurrentSongtitle(trackObject)
+        const position = await TrackPlayer.getPosition();
+        const duration = await TrackPlayer.getDuration();
 
     }
+    useTrackPlayerEvents([Event.PlaybackTrackChanged], async event => {
+        if (event.type === Event.PlaybackTrackChanged && event.nextTrack != null) {
+            gettrack()
+        }
+    });
     const skipToNext = async () => {
         await TrackPlayer.skipToNext()
         gettrack()
@@ -99,11 +146,14 @@ export default function TrackListScreen() {
 
     }
 
+    const formattedDate = moment(progress.position, 'ss').format('mm:ss')
+
+
     return (
 
         <View style={styles.container}>
             <View style={styles.miniConatiner}>
-            <Animated.View style={{ width: width, justifyContent: 'center', alignItems: 'center' }}>
+                <Animated.View style={{ width: width, justifyContent: 'center', alignItems: 'center' }}>
                     <View style={styles.imageWrapper}>
                         <Image
                             source={currentSongtitle?.artwork}
@@ -147,8 +197,17 @@ export default function TrackListScreen() {
 
 
                     <View style={styles.duration}>
-                        <Text style={styles.durationText}>{progress.position} </Text>
-                        <Text style={styles.durationText}> {progress.duration} </Text>
+                        <Text style={styles.durationText}>
+                            {new Date(progress.position * 1000)
+                                .toString()
+                                .substring(19, 24)}
+
+                        </Text>
+                        <Text style={styles.durationText}>
+                            {new Date(progress.duration * 1000)
+                                .toString()
+                                .substring(19, 24)}
+                        </Text>
 
                     </View>
 
@@ -187,7 +246,7 @@ export default function TrackListScreen() {
                 </View>
             </View>
 
-            <Text> Music player</Text>
+
         </View>
     );
 }
@@ -211,7 +270,7 @@ const styles = StyleSheet.create({
     imageWrapper: {
         width: 300,
         height: 340,
-        // marginBottom: 10,
+        marginBottom: 10,
 
     },
     musicImage: {

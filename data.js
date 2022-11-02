@@ -1,7 +1,7 @@
 const musiclibrary = [
   {
     id: 1,
-    url: 'https://www.bensound.com/bensound-music/bensound-happyrock.mp3',
+    url: require('./Music/right-now.mp3'),
     title: 'Right Now ',
     artist: 'Acon',
     album: "Acon",
@@ -45,7 +45,7 @@ const musiclibrary = [
   },
   {
     id: 5,
-    url: 'https://www.bensound.com/bensound-music/bensound-allthat.mp3',
+    url: require('./Music/night-changes.mp3'),
     title: 'Night Changes',
     artist: 'One Direction',
     album: "One Direction",
